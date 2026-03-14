@@ -27,6 +27,7 @@ function App() {
 	const [startBuilding, setStartBuilding] = useState<SingleValue<OptionType>>(null);
 	const [startFloor, setStartFloor] = useState<SingleValue<OptionType>>(null);
 	const [startLocationMarker, setStartLocationMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
+	const [liveLocationMarker, setLiveLocationMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
 	const [endBuilding, setEndBuilding] = useState<SingleValue<OptionType>>(null);
 	const [endFloor, setEndFloor] = useState<SingleValue<OptionType>>(null);
 	const [endLocationMarker, endStartLocationMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
@@ -65,6 +66,37 @@ function App() {
 
 	useBaseGeoJson(googleMap, geoJson, hasRoute);
 
+	//styling the dot for liveLocation marker
+	const dot = document.createElement("div");
+	dot.style.cssText = `
+		width: 16px;
+		height: 16px;
+		background: #4285F4;
+		border: 3px solid white;
+		border-radius: 50%;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+	`;
+
+	//arrow function - the output is passed as a parameter of useEffect and is called whenever googleMap or Markers is changed
+	useEffect(() =>{
+		if(googleMap && Markers){
+
+			const location = {lat:43.4718, lng:-80.543};
+		
+
+			if(!liveLocationMarker){
+				setLiveLocationMarker(new (Markers as any).AdvancedMarkerElement({
+					map:googleMap,
+					position:location,
+					content:dot}));
+
+			}else{
+				liveLocationMarker.position = location;
+
+			}
+	}
+	}, [googleMap,Markers])
+	
 
 	// update route on map
 	useEffect(() => {
