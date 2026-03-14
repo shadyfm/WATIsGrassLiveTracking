@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import Select, { SingleValue } from 'react-select';
-
+import useUserLocation from './hooks/useUserLocation';
 import './App.css';
 
 import geoJson from './geojson/paths.json';
@@ -66,36 +66,46 @@ function App() {
 
 	useBaseGeoJson(googleMap, geoJson, hasRoute);
 
-	//styling the dot for liveLocation marker
-	const dot = document.createElement("div");
-	dot.style.cssText = `
-		width: 16px;
-		height: 16px;
-		background: #4285F4;
-		border: 3px solid white;
-		border-radius: 50%;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-	`;
+	const {position,error} = useUserLocation();
+
+	const dot = useMemo(() => {
+		const el = document.createElement("div");
+		el.style.cssText = `
+			width: 16px;
+			height: 16px;
+			background: #4285F4;
+			border: 3px solid white;
+			border-radius: 50%;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+		`;
+		return el;	}, []);
+
+	useEffect(() => {
+        if (error) {
+            console.warn('useUserLocation error:', error);
+        } else if (!position) {
+            console.log('useUserLocation: waiting for position / permission prompt');
+        } else {
+            console.log('Live position update:', position.lat, position.lng);
+        }
+    }, [position, error]);
 
 	//arrow function - the output is passed as a parameter of useEffect and is called whenever googleMap or Markers is changed
 	useEffect(() =>{
-		if(googleMap && Markers){
-
-			const location = {lat:43.4718, lng:-80.543};
-		
+		if(googleMap && Markers && position){
 
 			if(!liveLocationMarker){
 				setLiveLocationMarker(new (Markers as any).AdvancedMarkerElement({
 					map:googleMap,
-					position:location,
+					position:position,
 					content:dot}));
 
 			}else{
-				liveLocationMarker.position = location;
+				liveLocationMarker.position = position;
 
 			}
 	}
-	}, [googleMap,Markers])
+	}, [googleMap,Markers, position, dot, liveLocationMarker])
 	
 
 	// update route on map
