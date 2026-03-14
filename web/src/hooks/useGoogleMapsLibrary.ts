@@ -13,12 +13,30 @@ export default function useGoogleMapsLibrary(name: string, callback = (lib: Goog
     
     useEffect(() => {
         setLibraryIsLoaded(false);
-        google.maps.importLibrary(name).then(res => {
-            setLibrary(res);
-            setLibraryIsLoaded(true);
-            callback(res);
-        }).catch(error => console.log(error));
-    }, []);
+        
+        // Wait for google.maps to be available
+        const waitForGoogleMaps = () => {
+            if (typeof google !== 'undefined' && google.maps && google.maps.importLibrary) {
+                google.maps.importLibrary(name).then(res => {
+                    setLibrary(res);
+                    setLibraryIsLoaded(true);
+                    callback(res);
+                }).catch(error => {
+                    console.error(`Error loading Google Maps library "${name}":`, error);
+                    console.error('This is likely an API key issue. Check:');
+                    console.error('1. API key is valid and correct');
+                    console.error('2. Maps JavaScript API is enabled in Google Cloud Console');
+                    console.error('3. Billing is enabled on your Google Cloud project');
+                    console.error('4. API key restrictions allow localhost');
+                });
+            } else {
+                // Wait a bit and try again
+                setTimeout(waitForGoogleMaps, 100);
+            }
+        };
+        
+        waitForGoogleMaps();
+    }, [name]);
 
     return { library, libraryIsLoaded };
 }
