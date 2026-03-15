@@ -149,7 +149,7 @@ function App() {
 		}
 
 
-	}, [liveLocationMarker, isFollowing])
+	}, [googleMap, position, isFollowing])
 
 	// update route on map
 	useEffect(() => {
