@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Select, { SingleValue } from 'react-select';
 import useUserLocation from './hooks/useUserLocation';
 import './App.css';
@@ -67,7 +67,7 @@ function App() {
 
 	useBaseGeoJson(googleMap, geoJson, hasRoute);
 
-	const {position} = useUserLocation();
+	const {position, error} = useUserLocation();
 
 	const dot = useMemo(() => {
 		const el = document.createElement("div");
@@ -82,8 +82,70 @@ function App() {
 		return el;
 	}, []);
 
-	useSmoothMarkerTracking(googleMap, Markers, position, dot);
-	
+	useEffect(() => {
+        if (error) {
+            console.warn('useUserLocation error:', error);
+        } else if (!position) {
+            console.log('useUserLocation: waiting for position / permission prompt');
+        } else {
+            console.log('Live position update:', position.lat, position.lng);
+        }
+    }, [position, error]);
+
+	//arrow function - the output is passed as a parameter of useEffect and is called whenever googleMap or Markers is changed
+	useEffect(() =>{
+		if(googleMap && Markers && position){
+
+			if(!liveLocationMarker){
+				setLiveLocationMarker(new (Markers as any).AdvancedMarkerElement({
+					map:googleMap,
+					position:position,
+					content:dot}));
+
+			}else{
+				liveLocationMarker.position = position;
+
+			}
+	}
+	}, [googleMap,Markers, position, dot, liveLocationMarker])
+
+	const [isFollowing, setIsFollowing] = useState(true);
+
+	const isProgrammaticZoom = useRef(false);
+
+	useEffect(() => {
+		let dragListener: google.maps.MapsEventListener | null = null;
+        let zoomListener: google.maps.MapsEventListener | null = null;
+
+		if(googleMap){
+			dragListener = googleMap.addListener('dragstart', () => setIsFollowing(false))
+  			zoomListener = googleMap.addListener('zoom_changed', () => {
+				if(!isProgrammaticZoom.current){
+
+					setIsFollowing(false);
+				}
+			});
+		}
+
+		return() => {
+
+			dragListener?.remove();
+			zoomListener?.remove();
+		}
+
+
+	}, [googleMap])
+
+	useEffect(() => {
+		if(googleMap && liveLocationMarker && isFollowing){
+
+			googleMap.panTo(position);
+			googleMap.setZoom(19.5);
+
+		}
+
+
+	}, [liveLocationMarker, isFollowing])
 
 	// update route on map
 	useEffect(() => {
@@ -276,7 +338,28 @@ function App() {
 					Github
 				</a>!
 			</div>
+
+			<button
+				onClick={() => { if (googleMap && position) {
+					setIsFollowing(true);
+
+	
+					googleMap.panTo(position);
+					isProgrammaticZoom.current = true;
+					googleMap.setZoom(19.5);
+					setTimeout(() => { isProgrammaticZoom.current = false }, 100)
+
+				}}}
+				disabled={!googleMap || !position}
+				className="absolute bottom-5 right-5 z-10 bg-white rounded-full px-4 py-2 shadow-md"
+				aria-label="Re-center map on current position"
+				>
+				Re-center
+				</button>
+
 		</div>
+
+
 	);
 }
 
