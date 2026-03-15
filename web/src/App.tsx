@@ -28,6 +28,7 @@ function App() {
 	const [startBuilding, setStartBuilding] = useState<SingleValue<OptionType>>(null);
 	const [startFloor, setStartFloor] = useState<SingleValue<OptionType>>(null);
 	const [startLocationMarker, setStartLocationMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
+	const [liveLocationMarker, setLiveLocationMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
 
 	const [endBuilding, setEndBuilding] = useState<SingleValue<OptionType>>(null);
 	const [endFloor, setEndFloor] = useState<SingleValue<OptionType>>(null);
@@ -92,22 +93,25 @@ function App() {
         }
     }, [position, error]);
 
-	//arrow function - the output is passed as a parameter of useEffect and is called whenever googleMap or Markers is changed
-	useEffect(() =>{
-		if(googleMap && Markers && position){
+	// //arrow function - the output is passed as a parameter of useEffect and is called whenever googleMap or Markers is changed
+	// useEffect(() =>{
+	// 	if(googleMap && Markers && position){
 
-			if(!liveLocationMarker){
-				setLiveLocationMarker(new (Markers as any).AdvancedMarkerElement({
-					map:googleMap,
-					position:position,
-					content:dot}));
+	// 		if(!liveLocationMarker){
+	// 			setLiveLocationMarker(new (Markers as any).AdvancedMarkerElement({
+	// 				map:googleMap,
+	// 				position:position,
+	// 				content:dot}));
 
-			}else{
-				liveLocationMarker.position = position;
+	// 		}else{
+	// 			liveLocationMarker.position = position;
 
-			}
-	}
-	}, [googleMap,Markers, position, dot, liveLocationMarker])
+	// 		}
+	// }
+	// }, [googleMap,Markers, position, dot, liveLocationMarker])
+
+
+	useSmoothMarkerTracking(googleMap, Markers, position, dot);
 
 	const [isFollowing, setIsFollowing] = useState(true);
 
@@ -137,7 +141,7 @@ function App() {
 	}, [googleMap])
 
 	useEffect(() => {
-		if(googleMap && liveLocationMarker && isFollowing){
+		if(googleMap && isFollowing){
 
 			googleMap.panTo(position);
 			googleMap.setZoom(19.5);

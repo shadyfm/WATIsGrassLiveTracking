@@ -32,7 +32,7 @@ export default function useSmoothMarkerTracking(
     rawPosition: LatLng | null,
     dot: HTMLElement
 ) {
-    // All state lives in refs — position updates should NOT trigger re-renders
+    // All animation state lives in refs — position updates should NOT trigger re-renders
     const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
     const renderPos = useRef<LatLng | null>(null);         // what the marker is currently showing
     const confirmedPos = useRef<TimedLatLng | null>(null); // last smoothed GPS fix
@@ -82,6 +82,7 @@ export default function useSmoothMarkerTracking(
             if (rafId.current !== null) cancelAnimationFrame(rafId.current);
         };
     }, [googleMap, Markers]);
+    
 
     // ── GPS update handler ────────────────────────────────────────────────────
     // Runs when a new raw GPS coordinate arrives. Does NOT snap the marker —
@@ -95,11 +96,12 @@ export default function useSmoothMarkerTracking(
         if (!confirmedPos.current) {
             renderPos.current = rawPosition;
             confirmedPos.current = { ...rawPosition, time: now };
-            markerRef.current = new (Markers as any).AdvancedMarkerElement({
+            const newMarker = new (Markers as any).AdvancedMarkerElement({
                 map: googleMap,
                 position: rawPosition,
                 content: dot,
             });
+            markerRef.current = newMarker;
             return;
         }
 
