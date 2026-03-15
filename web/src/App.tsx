@@ -12,6 +12,7 @@ import useGoogleMapsLibrary from './hooks/useGoogleMapsLibrary';
 import updateLocation from './map/updateLocation';
 import DirectionsListItem from './components/DirectionsListItem';
 import useBaseGeoJson from './hooks/useBaseGeoJson';
+import useSmoothMarkerTracking from './hooks/useSmoothMarkerTracking';
 
 
 function App() {
@@ -27,7 +28,7 @@ function App() {
 	const [startBuilding, setStartBuilding] = useState<SingleValue<OptionType>>(null);
 	const [startFloor, setStartFloor] = useState<SingleValue<OptionType>>(null);
 	const [startLocationMarker, setStartLocationMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
-	const [liveLocationMarker, setLiveLocationMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
+
 	const [endBuilding, setEndBuilding] = useState<SingleValue<OptionType>>(null);
 	const [endFloor, setEndFloor] = useState<SingleValue<OptionType>>(null);
 	const [endLocationMarker, endStartLocationMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
@@ -66,7 +67,7 @@ function App() {
 
 	useBaseGeoJson(googleMap, geoJson, hasRoute);
 
-	const {position,error} = useUserLocation();
+	const {position} = useUserLocation();
 
 	const dot = useMemo(() => {
 		const el = document.createElement("div");
@@ -78,34 +79,10 @@ function App() {
 			border-radius: 50%;
 			box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 		`;
-		return el;	}, []);
+		return el;
+	}, []);
 
-	useEffect(() => {
-        if (error) {
-            console.warn('useUserLocation error:', error);
-        } else if (!position) {
-            console.log('useUserLocation: waiting for position / permission prompt');
-        } else {
-            console.log('Live position update:', position.lat, position.lng);
-        }
-    }, [position, error]);
-
-	//arrow function - the output is passed as a parameter of useEffect and is called whenever googleMap or Markers is changed
-	useEffect(() =>{
-		if(googleMap && Markers && position){
-
-			if(!liveLocationMarker){
-				setLiveLocationMarker(new (Markers as any).AdvancedMarkerElement({
-					map:googleMap,
-					position:position,
-					content:dot}));
-
-			}else{
-				liveLocationMarker.position = position;
-
-			}
-	}
-	}, [googleMap,Markers, position, dot, liveLocationMarker])
+	useSmoothMarkerTracking(googleMap, Markers, position, dot);
 	
 
 	// update route on map

@@ -29,3 +29,24 @@ export default function useUserLocation() {
 
     return { position, error };
 }
+
+
+
+// Temporary mock implementation for testing without GPS access. Simulates movement by updating position every 2 seconds.
+// export default function useUserLocation() {
+//     const [position, setPosition] = useState<{ lat: number, lng: number } | null>(null);
+
+//     useEffect(() => {
+//         let i = 0;
+//         const id = setInterval(() => {
+//             setPosition({
+//                 lat: 43.4718 + i * 0.0001,  // moves slightly each tick
+//                 lng: -80.543 + i * 0.0001,
+//             });
+//             i++;
+//         }, 2000); // new GPS "fix" every 2 seconds
+//         return () => clearInterval(id);
+//     }, []);
+
+//     return { position, error: null };
+// }
