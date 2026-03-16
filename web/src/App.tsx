@@ -111,7 +111,7 @@ function App() {
 	// }, [googleMap,Markers, position, dot, liveLocationMarker])
 
 
-	// useSmoothMarkerTracking(googleMap, Markers, position, dot);
+	useSmoothMarkerTracking(googleMap, Markers, position, dot);
 
 	const [isFollowing, setIsFollowing] = useState(true);
 
