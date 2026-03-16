@@ -141,7 +141,7 @@ function App() {
 	}, [googleMap])
 
 	useEffect(() => {
-		if(googleMap && isFollowing){
+		if(googleMap && isFollowing && position){
 
 			googleMap.panTo(position);
 			googleMap.setZoom(19.5);
@@ -177,6 +177,8 @@ function App() {
 
 	return (
 		<div className="App h-screen flex justify-center">
+
+			{error && <div style={{position:'fixed',top:0,left:0,right:0,background:'red',color:'white',zIndex:9999,padding:'8px',textAlign:'center'}}>{error}</div>}
 
 			<div id="map" className="z-0 relative h-[100%] w-[100%]"></div>
 
