@@ -111,41 +111,41 @@ function App() {
 	// }, [googleMap,Markers, position, dot, liveLocationMarker])
 
 
-	useSmoothMarkerTracking(googleMap, Markers, position, dot);
+	// useSmoothMarkerTracking(googleMap, Markers, position, dot);
 
 	const [isFollowing, setIsFollowing] = useState(true);
 
 	const isProgrammaticZoom = useRef(false);
 
-	useEffect(() => {
-		let dragListener: google.maps.MapsEventListener | null = null;
-        let zoomListener: google.maps.MapsEventListener | null = null;
+	// useEffect(() => {
+	// 	let dragListener: google.maps.MapsEventListener | null = null;
+    //     let zoomListener: google.maps.MapsEventListener | null = null;
 
-		if(googleMap){
-			dragListener = googleMap.addListener('dragstart', () => setIsFollowing(false))
-  			zoomListener = googleMap.addListener('zoom_changed', () => {
-				if(!isProgrammaticZoom.current){
+	// 	if(googleMap){
+	// 		dragListener = googleMap.addListener('dragstart', () => setIsFollowing(false))
+  	// 		zoomListener = googleMap.addListener('zoom_changed', () => {
+	// 			if(!isProgrammaticZoom.current){
 
-					setIsFollowing(false);
-				}
-			});
-		}
+	// 				setIsFollowing(false);
+	// 			}
+	// 		});
+	// 	}
 
-		return() => {
+	// 	return() => {
 
-			dragListener?.remove();
-			zoomListener?.remove();
-		}
+	// 		dragListener?.remove();
+	// 		zoomListener?.remove();
+	// 	}
 
 
-	}, [googleMap])
+	// }, [googleMap])
 
-	useEffect(() => {
-    if(googleMap && isFollowing && position){
-        googleMap.panTo({ lat: position.lat, lng: position.lng });
-        googleMap.setZoom(19.5);
-    }
-	}, [googleMap, position, isFollowing]);
+	// useEffect(() => {
+    // if(googleMap && isFollowing && position){
+    //     googleMap.panTo({ lat: position.lat, lng: position.lng });
+    //     googleMap.setZoom(19.5);
+    // }
+	// }, [googleMap, position, isFollowing]);
 
 	// update route on map
 	useEffect(() => {
@@ -341,7 +341,7 @@ function App() {
 				</a>!
 			</div>
 
-			<button
+			{/* <button
 				onClick={() => { if (googleMap && position) {
 					setIsFollowing(true);
 
@@ -357,7 +357,7 @@ function App() {
 				aria-label="Re-center map on current position"
 				>
 				Re-center
-				</button>
+				</button> */}
 
 		</div>
 
