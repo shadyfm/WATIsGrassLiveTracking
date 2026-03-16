@@ -17,6 +17,11 @@ const CORRECTION_TAU = 150;
 // Prevents the marker from drifting off indefinitely when GPS goes silent.
 const MAX_VELOCITY_AGE_MS = 4000;
 
+// If the rendered position is within this many degrees of the target, snap exactly.
+// Prevents the marker from asymptotically approaching but never landing on the target.
+// ~0.1m at equator — imperceptible visually.
+const SNAP_THRESHOLD = 0.000001;
+
 /**
  * Moves a Google Maps AdvancedMarkerElement smoothly using dead reckoning + noise filtering.
  *
@@ -69,10 +74,15 @@ export default function useSmoothMarkerTracking(
             // Exponential decay correction — frame-rate independent blend toward prediction.
             // factor approaches 1 the longer we've gone without correcting.
             const factor = 1 - Math.exp(-dt / CORRECTION_TAU);
-            renderPos.current = {
-                lat: render.lat + (predicted.lat - render.lat) * factor,
-                lng: render.lng + (predicted.lng - render.lng) * factor,
-            };
+            const nextLat = render.lat + (predicted.lat - render.lat) * factor;
+            const nextLng = render.lng + (predicted.lng - render.lng) * factor;
+
+            // Snap exactly to target once close enough — prevents asymptotic drift.
+            const dLat = predicted.lat - nextLat;
+            const dLng = predicted.lng - nextLng;
+            renderPos.current = (dLat * dLat + dLng * dLng < SNAP_THRESHOLD * SNAP_THRESHOLD)
+                ? { lat: predicted.lat, lng: predicted.lng }
+                : { lat: nextLat, lng: nextLng };
 
             marker.position = renderPos.current;
         };

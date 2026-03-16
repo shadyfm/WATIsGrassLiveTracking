@@ -21,7 +21,8 @@ export default function useUserLocation() {
             },
             (err) => {
                 setError(err.message);
-            }
+            },
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
         );
 
         return () => navigator.geolocation.clearWatch(watchId);
