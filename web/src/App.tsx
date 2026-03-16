@@ -141,15 +141,11 @@ function App() {
 	}, [googleMap])
 
 	useEffect(() => {
-		if(googleMap && isFollowing && position){
-
-			googleMap.panTo(position);
-			googleMap.setZoom(19.5);
-
-		}
-
-
-	}, [googleMap, position, isFollowing])
+    if(googleMap && isFollowing && position){
+        googleMap.panTo({ lat: position.lat, lng: position.lng });
+        googleMap.setZoom(19.5);
+    }
+	}, [googleMap, position, isFollowing]);
 
 	// update route on map
 	useEffect(() => {
