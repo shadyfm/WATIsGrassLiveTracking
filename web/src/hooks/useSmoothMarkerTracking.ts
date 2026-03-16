@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
+import { getDistance } from 'geolib';
 
 interface LatLng { lat: number; lng: number; }
 
-const ANIMATION_DURATION = 1000; // ms
+const ANIMATION_DURATION = 3000; // ms
+const DEADZONE_METERS = 2; // ignore GPS updates smaller than this
 
 export default function useSmoothMarkerTracking(
     googleMap: any,
@@ -32,6 +34,14 @@ export default function useSmoothMarkerTracking(
         const oldLng = current?.lng ?? rawPosition.lng;
         const newLat = rawPosition.lat;
         const newLng = rawPosition.lng;
+
+        // Deadzone — ignore tiny movements to prevent jitter when standing still
+        const distance = getDistance(
+            { latitude: oldLat, longitude: oldLng },
+            { latitude: newLat, longitude: newLng }
+        );
+        if (distance < DEADZONE_METERS) return;
+
         const startTime = performance.now();
 
         // Cancel any in-progress animation before starting a new one
@@ -39,14 +49,24 @@ export default function useSmoothMarkerTracking(
 
         // Animate from old position to new position over ANIMATION_DURATION ms
         const animate = (now: number) => {
-            const progress = Math.min((now - startTime) / ANIMATION_DURATION, 1);
+            const linear = Math.min((now - startTime) / ANIMATION_DURATION, 1);
+            // Smoothstep easing — accelerates out, decelerates in
+            const progress = linear * linear * (3 - 2 * linear);
             markerRef.current!.position = {
                 lat: oldLat + (newLat - oldLat) * progress,
                 lng: oldLng + (newLng - oldLng) * progress,
             };
-            if (progress < 1) rafId.current = requestAnimationFrame(animate);
+            if (linear < 1) rafId.current = requestAnimationFrame(animate);
         };
 
         rafId.current = requestAnimationFrame(animate);
     }, [rawPosition]);
+
+    // Cleanup on unmount — cancel any running animation and remove marker from map
+    useEffect(() => {
+        return () => {
+            if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+            if (markerRef.current) markerRef.current.map = null;
+        };
+    }, []);
 }
